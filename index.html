@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A'REST Bar — 11PM Shift Checklist</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #111111; min-height: 100vh; padding: 16px; }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  .card { background: #1c1c1c; border-radius: 16px; border: 1px solid #2e2e2e; margin-bottom: 12px; overflow: hidden; }
+  .header-card { padding: 20px; }
+  .logo { font-size: 13px; font-weight: 600; letter-spacing: 2px; color: #a06cde; margin-bottom: 6px; }
+  h1 { font-size: 20px; font-weight: 600; color: #e8e8e8; margin-bottom: 2px; }
+  .subtitle { font-size: 13px; color: #666; }
+  .deadline { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; background: #1e1428; border: 1px solid #4a2e6e; border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 500; color: #b08cde; }
+  .staff-card { padding: 16px 20px; }
+  .staff-card label { font-size: 12px; font-weight: 500; color: #666; display: block; margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .staff-card input { width: 100%; border: 1px solid #2e2e2e; border-radius: 10px; padding: 10px 14px; font-size: 15px; color: #e8e8e8; outline: none; background: #141414; }
+  .staff-card input:focus { border-color: #a06cde; background: #1a1a1a; }
+  .staff-card input::placeholder { color: #444; }
+  .prog-wrap { padding: 14px 20px; }
+  .prog-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+  .prog-track { height: 5px; background: #2a2a2a; border-radius: 3px; }
+  .prog-fill { height: 5px; background: #a06cde; border-radius: 3px; width: 0%; transition: width 0.3s; }
+  .section-title { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #a06cde; padding: 12px 20px 4px; background: #18121e; border-top: 1px solid #2a2a2a; }
+  .item { display: flex; align-items: flex-start; gap: 12px; padding: 11px 20px; border-top: 1px solid #222; cursor: pointer; transition: background 0.1s; -webkit-tap-highlight-color: transparent; }
+  .item:active { background: #1e1428; }
+  .cb { width: 20px; height: 20px; border: 1.5px solid #3a3a3a; border-radius: 6px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .item.done .cb { background: #a06cde; border-color: #a06cde; }
+  .tick { display: none; }
+  .item.done .tick { display: block; }
+  .item-label { font-size: 14px; color: #d0d0d0; line-height: 1.45; transition: color 0.15s; }
+  .item.done .item-label { color: #444; text-decoration: line-through; }
+  .submit-card { padding: 16px 20px 20px; }
+  .submit-btn { width: 100%; padding: 14px; background: #a06cde; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .submit-btn:active { background: #7a4eb8; }
+  .submit-btn:disabled { background: #2a2a3a; color: #555; cursor: not-allowed; }
+  .msg-box { margin-top: 14px; display: none; }
+  .msg-label { font-size: 12px; color: #666; margin-bottom: 6px; font-weight: 500; }
+  .msg-text { background: #141414; border: 1px solid #2e2e2e; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #ccc; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+  .copy-btn { width: 100%; margin-top: 10px; padding: 12px; background: #25D366; color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .copy-btn:active { background: #1da851; }
+  .copied-note { text-align: center; font-size: 12px; color: #25D366; margin-top: 6px; display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <div class="header-card">
+      <div class="logo">A'REST CAFÉ</div>
+      <h1>Bar Closing — 11PM Shift</h1>
+      <div class="subtitle">Damansara Uptown</div>
+      <div class="deadline">🌙 Complete before end of shift</div>
+    </div>
+  </div>
+
+  <div class="card staff-card">
+    <label>Staff Name</label>
+    <input type="text" id="staff-name" placeholder="Enter your name..." />
+  </div>
+
+  <div class="card">
+    <div class="prog-wrap">
+      <div class="prog-label" id="prog-label">0 of 10 tasks completed</div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+    </div>
+    <div id="checklist"></div>
+  </div>
+
+  <div class="card submit-card">
+    <button class="submit-btn" id="submit-btn" disabled>Complete & Generate WhatsApp Message</button>
+    <div class="msg-box" id="msg-box">
+      <div class="msg-label">Copy and send this to your staff group:</div>
+      <div class="msg-text" id="msg-text"></div>
+      <button class="copy-btn" id="copy-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy &amp; Open WhatsApp
+      </button>
+      <div class="copied-note" id="copied-note">✓ Copied! Paste it in WhatsApp.</div>
+    </div>
+  </div>
+
+</div>
+<script>
+const sections = [
+  { title: "Equipment Washing", items: [
+    { label: "Wash Combi Pastry Oven" },
+    { label: "Wash Coffee Machine" },
+    { label: "Wash all equipment and bar tools" },
+    { label: "Wash and dry cups" },
+    { label: "Wash and dry towels" },
+  ]},
+  { title: "Cleaning & Wiping", items: [
+    { label: "Clean and wipe coffee machine and grinder area" },
+    { label: "Wipe all syrup bottles and wrap nicely" },
+    { label: "Wipe front and back of bar countertop" },
+    { label: "Wipe chiller door and freezer door" },
+  ]},
+  { title: "Floor", items: [
+    { label: "Sweep and mop bar floor" },
+  ]},
+];
+
+const state = {};
+let total = 0;
+const cl = document.getElementById('checklist');
+
+sections.forEach((sec, si) => {
+  const titleDiv = document.createElement('div');
+  titleDiv.className = 'section-title';
+  titleDiv.textContent = sec.title;
+  cl.appendChild(titleDiv);
+  sec.items.forEach((item, ii) => {
+    total++;
+    const key = `${si}-${ii}`;
+    state[key] = false;
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = `
+      <div class="cb">
+        <svg class="tick" width="11" height="8" viewBox="0 0 11 8" fill="none">
+          <path d="M1 4L4 7L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="item-text">
+        <div class="item-label">${item.label}</div>
+      </div>`;
+    row.addEventListener('click', () => {
+      state[key] = !state[key];
+      row.classList.toggle('done', state[key]);
+      update();
+    });
+    cl.appendChild(row);
+  });
+});
+
+function update() {
+  const done = Object.values(state).filter(Boolean).length;
+  document.getElementById('prog-fill').style.width = Math.round(done/total*100)+'%';
+  document.getElementById('prog-label').textContent = `${done} of ${total} tasks completed`;
+  const name = document.getElementById('staff-name').value.trim();
+  document.getElementById('submit-btn').disabled = done < total || !name;
+}
+
+document.getElementById('staff-name').addEventListener('input', update);
+
+document.getElementById('submit-btn').addEventListener('click', () => {
+  const name = document.getElementById('staff-name').value.trim();
+  const now = new Date();
+  const date = now.toLocaleDateString('en-MY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const time = now.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' });
+  let taskList = '';
+  sections.forEach(sec => {
+    taskList += `\n${sec.title}:\n`;
+    sec.items.forEach(item => { taskList += `  ✅ ${item.label}\n`; });
+  });
+  const msg = `🟣 A'REST BAR — 11PM SHIFT CLOSING\n━━━━━━━━━━━━━━━━━━━━\n📅 ${date}\n👤 Staff: ${name}\n⏰ Submitted: ${time}\n━━━━━━━━━━━━━━━━━━━━\n${taskList}\n✅ All ${total} tasks completed. Bar fully closed and cleaned!`;
+  document.getElementById('msg-text').textContent = msg;
+  document.getElementById('msg-box').style.display = 'block';
+  document.getElementById('msg-box').scrollIntoView({ behavior: 'smooth' });
+});
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const text = document.getElementById('msg-text').textContent;
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    document.getElementById('copied-note').style.display = 'block';
+    setTimeout(() => { document.getElementById('copied-note').style.display = 'none'; }, 3000);
+  } catch(e) {
+    navigator.clipboard.writeText(text).then(() => {
+      document.getElementById('copied-note').style.display = 'block';
+      setTimeout(() => { document.getElementById('copied-note').style.display = 'none'; }, 3000);
+    });
+  }
+});
+</script>
+</body>
+</html>
